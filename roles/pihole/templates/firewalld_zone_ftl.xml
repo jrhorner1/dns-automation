@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<zone>
+  <short>FTL</short>
+  <description>For use by PiHole's API engine on the localhost interface only.</description>
+  <interface name="lo"/>
+  <service name="ftl"/>
+</zone>

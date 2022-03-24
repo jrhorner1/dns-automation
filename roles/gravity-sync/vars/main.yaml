@@ -1,0 +1,10 @@
+---
+required_packages:
+  - sqlite3
+  - git
+  - rsync
+
+installer_url: https://gravity.vmstan.com
+executable: /home/ubuntu/gravity-sync/gravity-sync.sh
+executable_symlink: /usr/local/bin/gravity-sync
+...

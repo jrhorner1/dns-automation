@@ -1,0 +1,11 @@
+---
+pihole_prerequisite_packages:
+  - dhcpcd5
+  - firewalld
+
+pihole_firewall_services:
+  - dns
+  - dhcp
+  - http
+  - https
+...

@@ -1,0 +1,49 @@
+---
+- name: install prerequisite packages
+  ansible.builtin.apt:
+    name: "{{ pihole_prerequisite_packages }}"
+    state: latest
+
+- name: setup firewall
+  become: yes
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: /etc/firewalld/{{ item.dest }}
+    owner: root
+    group: root
+    mode: 0640
+  loop: 
+    - src: firewalld_service_ftl.xml
+      dest: services/ftl.xml
+    - src: firewalld_zone_ftl.xml
+      dest: zones/ftl.xml
+    - src: firewalld_zone_public.xml
+      dest: zones/public.xml
+  notify: reload firewalld
+
+- name: redirect port 80 to 443
+  become: yes
+  ansible.posix.firewalld:
+    zone: public
+    rich_rule: rule family=ipv4 forward-port port=80 protocol=tcp to-port=443
+    state: enabled
+    permanent: yes
+    immediate: yes
+
+- name: check if pihole is installed
+  ansible.builtin.stat: 
+    path: /usr/local/bin/pihole
+  register: pihole
+
+- name: install pihole
+  block:
+    - ansible.builtin.get_url:
+        url: https://install.pi-hole.net
+        dest: /tmp/basic-install.sh 
+    - ansible.builtin.shell: /tmp/basic-install.sh
+  when: pihole.stat.isreg is not defined 
+
+- name: update pihole
+  ansible.builtin.command: pihole -up
+  when: pihole.stat.isreg is defined and pihole.stat.isreg 
+...

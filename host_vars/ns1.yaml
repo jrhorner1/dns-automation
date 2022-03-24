@@ -1,0 +1,7 @@
+---
+ansible_host: 192.168.11.2
+ansible_user: ubuntu
+
+# Gravity Sync
+pihole_role: primary
+...

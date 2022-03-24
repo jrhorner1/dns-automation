@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>FTL</short>
+  <description>FTL is PiHole's API engine and uses port 4711 on the localhost interface. This port should not be accessible from any other interface.</description>
+  <port port="4711" protocol="tcp"/>
+</service>
