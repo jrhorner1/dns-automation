@@ -5,29 +5,53 @@
     name: "{{ required_packages }}"
     state: present
 
+- name: Setup ssh
+  block:
+    - name: Generate secondary ssh public key
+      ansible.builtin.user:
+        name: ubuntu
+        generate_ssh_key: yes
+
+    - name: Retrieve secondary ssh public key
+      ansible.builtin.fetch:
+        src: /home/ubuntu/.ssh/id_rsa.pub
+        dest: roles/gravity-sync/files/secondary.pub
+        flat: yes
+  when: pihole_role == "secondary"
+
+- name: Add secondary ssh public key to primary
+  ansible.posix.authorized_key:
+    user: ubuntu
+    state: present
+    key: "{{ item }}"
+  with_file:
+    - roles/gravity-sync/files/secondary.pub
+  when: pihole_role == "primary"
+
 - name: Check for Gravity Sync executable
   ansible.builtin.stat:
-    path: "{{ executable }}"
+    path: "{{ gravity_sync_executable }}"
   register: gs
 
 - name: Install Gravity Sync
   block:
-    - name: Retrieve installer script
-      ansible.builtin.get_url:
-        url: "{{ installer_url }}"
-        dest: /tmp/gravity.sh
-        mode: 0775
-
-    - name: Run install script
-      shell: /tmp/gravity.sh
+    - name: Clone gravity-sync repo
+      ansible.builtin.git:
+        repo: "{{ gravity_sync_repo }}"
+        dest: "{{ gravity_sync_path }}"
       environment:
-        GS_INSTALL: "{{ pihole_role }}"
+        GIT_TERMINAL_PROMPT: 0
 
-    - name: Setup executable symlink
+    - name: Apply configuration template
+      ansible.builtin.template:
+        src: gravity-sync.conf.j2
+        dest: "{{ gravity_sync_path }}/settings/gravity-sync.conf"
+
+    - name: Setup executable symlink on secondary
       become: yes
       ansible.builtin.file:
-        src: "{{ executable }}"
-        dest: "{{ executable_symlink }}"
+        src: "{{ gravity_sync_executable }}"
+        dest: "{{ gravity_sync_symlink }}"
         state: link
 
     - name: Cleanup
@@ -37,6 +61,6 @@
   when: gs.stat.isreg is not defined and pihole_role == "secondary"
 
 - name: Update Gravity Sync
-  command: "{{ executable }} update"
-  when: gs.stat.isreg is defined and gs.stat.isreg
+  command: "{{ gravity_sync_executable }} update"
+  when: gs.stat.isreg is defined and gs.stat.isreg and pihole_role == "secondary"
 ...

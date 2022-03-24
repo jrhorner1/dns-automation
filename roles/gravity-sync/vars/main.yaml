@@ -4,7 +4,8 @@ required_packages:
   - git
   - rsync
 
-installer_url: https://gravity.vmstan.com
-executable: /home/ubuntu/gravity-sync/gravity-sync.sh
-executable_symlink: /usr/local/bin/gravity-sync
+gravity_sync_repo: https://github.com/vmstan/gravity-sync.git
+gravity_sync_path: /home/ubuntu/gravity-sync
+gravity_sync_executable: "{{ gravity_sync_path }}/gravity-sync.sh"
+gravity_sync_symlink: /usr/local/bin/gravity-sync
 ...
